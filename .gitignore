@@ -25,3 +25,16 @@ yarn-error.log
 # Environment
 .env
 .env.local
+
+# Firebase & Sensitive Files
+google-services.json
+servicesAccountsKey.json
+**/google-services.json
+**/servicesAccountsKey.json
+backend-server/servicesAccountsKey.json
+android-app/app/google-services.json
+
+# Large Files
+*.zip
+DeviceManager.zip
+DeviceManager.apk
