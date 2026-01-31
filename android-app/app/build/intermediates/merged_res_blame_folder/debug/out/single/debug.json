@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "com.dataPackageSandeep.com.app-merged_res-41:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "com.dataPackageSandeep.com.app-main-43:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.dataPackageSandeep.com.app-merged_res-41:/layout_activity_main.xml.flat",
+        "source": "com.dataPackageSandeep.com.app-main-43:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.dataPackageSandeep.com.app-merged_res-41:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "com.dataPackageSandeep.com.app-main-43:/mipmap-anydpi-v26/ic_launcher.xml"
+    }
+]
